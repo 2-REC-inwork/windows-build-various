@@ -1,0 +1,46 @@
+
+for each project:
+- doc/instrcutions to build (+deploy?)
+  + links to site + sources
+  + list of deps
+- build script when applicable
+- release build?
+
+
+
+
+USD
+usd-build-win
+
+OIIO
+openimageio-build-win
+
+OCIO
+opencolorio-build-win
+
+others
+various-build-win
+
+? - own separate repos?
+alembic
+boost
+(x - dcmtk - later?)
+(ffmpeg - later)
+(x - field3d - later)
+(x - libheif)
+openexr
+
+
+===================
+
+LOOK AT:
+
+https://github.com/PixarAnimationStudios/USD/blob/release/BUILDING.md
+https://www.manicmachinegames.com/blog/2019/1/10/tutorial-setting-up-and-building-pixars-usd-on-windows
+https://github.com/vfxpro99/usd-build-club/wiki/Using-Pixar's-build-script-on-Windows
+https://www.steakunderwater.com/wesuckless/viewtopic.php?t=3505
+old:
+https://github.com/VictorYudin/saturn/blob/master/appveyor.yml
+
+
+
