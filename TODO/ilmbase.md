@@ -5,16 +5,58 @@
 # ILMBASE
 
 
+Errors/issues:
+(TODO: SPECIFY VERSION!)
 
-Version is not set in "IlmBaseConfig.h", causing issues with Alembic
+- library version (output)
+If Windows ("WIN32"), the library version is not set in "IlmBaseConfig.h", causing issues with Alembic.
 (TODO: detail + fix)
+=> modify "CMakeLists.txt"
 
+
+- python detection
+  => with order PythonLibs then PythonInterp, seems to not detect python
+FIX:
+  in
+    ...\PyIlmBase-2.2.0\CMakeLists.txt
+  invert order:
+    FIND_PACKAGE ( PythonInterp REQUIRED )
+    FIND_PACKAGE ( PythonLibs REQUIRED )
+  + suggested in doc:
+    "If calling both find_package(PythonInterp) and find_package(PythonLibs), call find_package(PythonInterp) first to get the currently active Python version by default with a consistent version of PYTHON_LIBRARIES."
+    from:
+    https://cmake.org/cmake/help/latest/module/FindPythonLibs.html
+
+
+- can't find NumPy
+  change:
+    FIND_PACKAGE ( NumPy )
+  to:
+    FIND_PACKAGE ( Python COMPONENTS NumPy )
+
+
+- include boost directories
+  - headers:
+    INCLUDE_DIRECTORIES (${Boost_INCLUDE_DIR})
+  - lib:
+    LINK_DIRECTORIES (${Boost_LIBRARY_DIRS})
+(+check other changes (?))
+
+
+- when static boost, looks for "boost_python..." though should link to "libboost_python..."
+  check woth:
+  add SET(Boost_DEBUG 1) before FIND_PACKAGE and MESSAGE("\${Boost_LIBRARIES} - ${Boost_LIBRARIES}") after FIND_PACKAGE in your CMakeLists.txt. 
+
+
+
+----
 
 TODO: add python to build!
 old ilmbase+ypilmbase versions
 https://download-mirror.savannah.gnu.org/releases/openexr/?C=M&O=A
 got v2.0.0, try it...
 
+----
 
 ```
 warning C4275: non dll-interface class 'Iex::MathExc' used as base for dll-interface class 'Imath::SingMatrixExc'

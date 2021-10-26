@@ -143,6 +143,15 @@ note: otherwise, you can safely ignore this message.
     - zstd                     : no  (cached)
 
 
+
+#### Use Boost
+
+(TODO: change/rewrite)
+More infos:
+https://www.boost.org/doc/libs/1_66_0/more/getting_started/windows.html
+"To compile anything in Boost, you need a directory containing the boost\ subdirectory in your #include path. "
+
+
 #### Linking
 
 
