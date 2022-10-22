@@ -1,0 +1,45 @@
+(TODO: remove "-skip" prefixes?)
+
+Useful modules to keep (might not all be interesting, to be cheked):
+-skip qtwinextras
+-skip qt3d
+-skip qtcanvas3d
+-skip qtcharts
+-skip qtdatavis3d
+-skip qtdeclarative
+-skip qtgraphicaleffects
+-skip qtimageformats
+-skip qtmultimedia
+-skip qtquickcontrols
+-skip qtquickcontrols2
+-skip qtscript
+-skip qtscxml
+-skip qtsvg
+-skip qttools
+-skip qttranslations
+-skip qtxmlpatterns
+
+Network related (skip for now):
+-skip qtconnectivity
+-skip qtwebchannel
+-skip qtwebengine
+-skip qtwebsockets
+-skip qtwebview
+-skip qtnetworkauth
+
+Unnecessary modules (?):
+-skip qtdoc
+-skip qtgamepad
+-skip qtlocation
+-skip qtpurchasing
+-skip qtsensors
+-skip qtserialbus
+-skip qtserialport
+-skip qtspeech
+-skip qtvirtualkeyboard
+-skip qtwayland
+
+OS specific modules:
+-skip qtandroidextras
+-skip qtmacextras
+-skip qtx11extras
