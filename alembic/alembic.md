@@ -135,10 +135,33 @@ Some of these incompatibilities have been addressed in more recent releases of A
 +add details
 
 
+(TODO: look at:
+in "NEWS.xt":
+```
+Add the msvc14fixes.cpp for the python bindings if using MSVC 14 2015 Update 3.
+```
+=> Still required? (related to "missing reference(s) to get_pointer()" and Boost).
+)
+
+#### Debug
+
+- OpenEXR libraries
+  => _d suffix to add to search
+  (only for WIN32 + debug)
+
+(not an error:
+- PyImath library
+  => must be specified, different for debug and release
+  (use: "ALEMBIC_PYILMBASE_PYIMATH_LIB")
+)
+
+
+
 #### Find Boost
 
 \alembic-1.7.16\cmake\AlembicBoost.cmake
 => find_package boost python needs version if boost >1.63
+(TODO: add code?)
 
 
 #### HDF5 Dependency
@@ -213,14 +236,53 @@ This error only occurs if using Imath, so it can be ignored if using OpenEXR.
     => '_ilmbase_libs_ver' might not be defined
 
 
-#### PyAlembic Linking
+#### PyAlembic - bigobj
 
-- PyAlembic_Test
-  Error:
-  ```
-  main.obj : error LNK2019: unresolved external symbol WSAStartup referenced in function main [C:\Users\2-REC\Documents\alembic\build\python\PyAlembic\Tests\PyAlembic_Test.vcxproj]
-  C:\Users\2-REC\Documents\alembic\build\python\PyAlembic\Tests\Release\PyAlembic_Test.exe : fatal error LNK1120: 1 unresolved externals [C:\Users\2-REC\Documents\alembic\build\python\PyAlembic\Tests\PyAlembic_Test.vcxproj]
-  ```
+Error:
+```
+...\python\PyAlembic\PyIGeomParamVertexPoint.cpp :
+ fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
+ [...\build\python\PyAlembic\PyAlembic.vcxproj]
+```
+
+Mentionned in "NEWS.txt":
+```
+Use /bigobj flag for Visual Studio 2008/MSVC15.
+```
+
+
+The flag is already added when using MSVC 15.x (fix related to [issue](https://github.com/alembic/alembic/pull/172)).
+However, it seems that the issue is related to the debug build rather than the compiler version.
+See about the [same issue in another project](https://github.com/nlohmann/json/issues/1114).
+
+The solution is to check if it is a debug build rather than checking the compiler version.
+In "CMakeLists.txt", replace:
+```
+IF ((CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16) AND
+    (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15))
+    # MSVC15/MSVS2009 fix
+    SET (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /bigobj" )
+ENDIF ()
+```
+with:
+```
+IF ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    SET (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /bigobj" )
+ENDIF ()
+```
+
+
+##### PyAlembic_Test
+
+###### Unresolved WSAStartup
+
+Error:
+```
+main.obj : error LNK2019: unresolved external symbol WSAStartup referenced in function main
+ [...\build\python\PyAlembic\Tests\PyAlembic_Test.vcxproj]
+...\build\python\PyAlembic\Tests\Release\PyAlembic_Test.exe : fatal error LNK1120: 1 unresolved externals
+ [...\build\python\PyAlembic\Tests\PyAlembic_Test.vcxproj]
+```
   => missing link to library 'Ws2_32.lib' (socket)
     - either add library or set "USE_TESTS=OFF" (but then for every module)
 In "python\PyAlembic\Tests\CMakeLists.txt":
@@ -230,6 +292,104 @@ if(WIN32)
   TARGET_LINK_LIBRARIES(PyAlembic_Test ws2_32)
 endif()
 ```
+
+###### PyAlembic Linking
+
+Warning (error):
+```
+CMake Warning (dev) at python/PyAlembic/Tests/CMakeLists.txt:54 (ADD_DEPENDENCIES):
+  Policy CMP0046 is not set: Error on non-existent dependency in
+  add_dependencies.  Run "cmake --help-policy CMP0046" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+
+  The dependency target "alembic" of target "PyAlembic_Test" does not exist.
+This warning is for project developers.  Use -Wno-dev to suppress it.
+```
+
+Mentionned in [issue](https://github.com/alembic/alembic/pull/172).
+However, the change hasn't been made in "PyAlembic" module, resulting in an undefined dependency.
+
+FIX:
+In "python\PyAlembic\Tests\CMakeLists.txt", replace:
+```
+ADD_DEPENDENCIES(PyAlembic_Test alembic)
+```
+with:
+```
+ADD_DEPENDENCIES(PyAlembic_Test PyAlembic)
+```
+
+
+###### Python Debug
+
+- "PyAlembic_Test" requiring Python debug lib
+=> modify "main.cpp" in "PyAlembic_Test" project:
+use hack (surround Python include):
+#ifdef _DEBUG
+#    define DBG_HACK
+#    undef _DEBUG
+#endif
+#include <Python.h>
+#ifdef DBG_HACK
+#    undef DBG_HACK
+#    define _DEBUG
+#endif
+
+Same issue in "python\PyAlembic\Foundation.h"
+
+
+#### PyImath Module
+
+When building OpenEXR with CMake, the output modules don't have the "module" suffix (for example "imath.pyd" instead of "imathmodule.pyd").
+Info:
+https://github.com/AcademySoftwareFoundation/openexr/issues/725
+
+Also, the Cmake script tries to find the "so" (Linux) file instead of the "pyd".
+
+FIX:
+(TODO: quite horrible, temp fix)
+In "E:\alembic\NEW\alembic-1.7.16\cmake\Modules\FindPyIlmBase.cmake", add extension and other file name:
+```
+IF (WIN32)
+    SET (EXT ".pyd")
+ELSE()
+    SET (EXT ".so")
+ENDIF()
+#TODO: Keep both? (should remove "imathmodule")
+SET (ALEMBIC_PYIMATH_MODULE imath${EXT})
+SET (ALEMBIC_PYIMATH_MODULE_LONG imathmodule${EXT})
+FIND_PATH(ALEMBIC_PYIMATH_MODULE_DIRECTORY
+    NAMES
+    ${ALEMBIC_PYIMATH_MODULE}
+    ${ALEMBIC_PYIMATH_MODULE_LONG}
+    PATHS
+    ${LIBRARY_PATHS}
+    /usr/local/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages
+    ${ALEMBIC_PYILMBASE_ROOT}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages
+    ${ALEMBIC_PYILMBASE_ROOT}/lib64/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages
+    DOC "The imath Python module directory"
+)
+```
+
+Additionally, the "site-packages" sub directory containing the module file needs to be added:
+```
+SET(LIBRARY_PATHS
+    ${ALEMBIC_PYILMBASE_ROOT}/lib
+    # Added "site-packages" sub directory
+    ${ALEMBIC_PYILMBASE_ROOT}/lib/site-packages
+    ${ALEMBIC_PYILMBASE_MODULE_DIRECTORY}
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /usr/local/lib
+    /usr/lib
+    /sw/lib
+    /opt/local/lib
+    /opt/csw/lib
+    /opt/lib
+    /usr/freeware/lib64
+)
+```
+
 
 
 #### Warning

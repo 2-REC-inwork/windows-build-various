@@ -1,6 +1,6 @@
 
 # GLUT
 
-(TODO: link to OCIO - GLUT.
-Or move to here?
+(TODO: copy from OCIO - GLUT.
+=> duplicate, but better to keep separate (keep OCIO standalone)
 )
