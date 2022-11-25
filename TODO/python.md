@@ -1,7 +1,6 @@
 
 # BUILD PYTHON FROM SOURCE
 
-(TODO: move to other file)
 Source:
 https://www.python.org/downloads/release/python-2718/
 

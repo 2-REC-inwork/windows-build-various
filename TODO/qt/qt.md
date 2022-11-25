@@ -10,6 +10,9 @@ https://www.qt.io/offline-installers
 
 Build instructions:
 https://doc.qt.io/qt-5/windows-building.html
+(+check:
+https://wiki.qt.io/Building_Qt_5_from_Git
+)
 
 
 It is essential to determine which components are required/desired, as the build process can take very long and require a lot of free space.
